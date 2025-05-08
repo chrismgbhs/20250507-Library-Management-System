@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,11 +13,17 @@ namespace _20250507_Library_Management_System
         {
             string userName = "";
             string roleInput = "";
+            string holder = "";
+            string newBookTitleHolder = "";
+            string newBookAuthorHolder = "";    
             int userProcess;
-            int bookInput;
+            int bookInput = 0;
             int bookReturnIntput;
+            int pendingBooksCounter;
+            int justBookCounter;
             bool nameIsValid = false;
             bool roleIsValid;
+            bool userProcessAgain;
 
             List<string> studentsList = new List<string>
             {
@@ -43,6 +50,15 @@ namespace _20250507_Library_Management_System
                 "Logout",
             };
 
+            List<string> librarianProcessList = new List<string>
+            {
+                "Add new books",
+                "View all books",
+                "View pending book requests",
+                "Approve/decline book requests",
+                "Logout"
+            };
+
             List<string> booksList = new List<string>
             {
                 "The Let Them Theory • A Life-Changing Tool That Millions of People Can’t Stop Talking About by Mel Robbins",
@@ -53,30 +69,33 @@ namespace _20250507_Library_Management_System
                 "The little prince by de Saint-Exupery Antoine, Katherine Woods"
             };
 
-            List<string> pendingBorrowRequests = new List<string>();
-            List<string> approvedBorrowRequests = new List<string>();
+
 
 
             Dictionary<string, List<string>> studentApprovedBooks = new Dictionary<string, List<string>>();
-            Dictionary<string, List<string>> studentPendingBooks = new Dictionary<string, List<string>>();
+            Dictionary<string, Queue<string>> studentPendingBooks = new Dictionary<string, Queue<string>>();
+            Dictionary<string, List<string>> studentDeclinedBooks = new Dictionary<string, List<string>>();
 
             foreach (string username in studentsList)
             {
                 studentApprovedBooks[$"{username}"] = new List<string>();
-                studentPendingBooks[$"{username}"] = new List<string>();
+                studentPendingBooks[$"{username}"] = new Queue<string>();
+                studentDeclinedBooks[$"{username}"] = new List<string>();
             }
 
-            while (true) 
+            while (true)
             {
                 nameIsValid = false;
 
-                while (!nameIsValid) 
+                Console.Clear();
+
+                while (!nameIsValid)
                 {
                     Console.Write("Please enter your name: ");
                     userName = Console.ReadLine();
 
-                    if (studentProcessList.Contains(userName) || librariansList.Contains(userName)) 
-                    { 
+                    if (studentProcessList.Contains(userName) || librariansList.Contains(userName))
+                    {
                         nameIsValid = true;
                     }
                 }
@@ -88,112 +107,393 @@ namespace _20250507_Library_Management_System
                     Console.Write("Please select your role (student/librarian): ");
                     roleInput = Console.ReadLine().ToLower();
 
-                    if (roleInput == "student")
+                    if (roleInput == "student" || roleInput == "librarian")
                     {
                         roleIsValid = true;
                     }
                 }
 
                 Console.WriteLine();
+                userProcessAgain = true;
 
-                switch (roleInput) 
+                while (userProcessAgain )
                 {
-                    case "student":
+                    holder = "";
+                    userProcess = 0;
 
-                        Console.WriteLine("AVAILABLE BOOKS");
-                        for (int bookCounter = 0; bookCounter < booksList.Count; bookCounter++)
-                        {
-                            Console.WriteLine($"{bookCounter + 1}. {booksList[bookCounter]}");
-                        }
+                    Console.Clear();
+                    switch (roleInput)
+                    {
+                        case "student":
 
-                        Console.WriteLine();
-
-                        for (int studentProcessListCounter = 0; studentProcessListCounter < studentProcessList.Count; studentProcessListCounter++) 
-                        {
-                            Console.WriteLine($"{studentProcessListCounter + 1}. {studentProcessList[studentProcessListCounter]}");
-                        }
-
-                        while (true)
-                        {
-                            Console.Write("Please select the process that you want to do: ");
-                            if (int.TryParse(Console.ReadLine(), out userProcess) && userProcess <= studentProcessList.Count && userProcess > 0 )
+                            Console.WriteLine("AVAILABLE BOOKS");
+                            for (int bookCounter = 0; bookCounter < booksList.Count; bookCounter++)
                             {
-                                break;
+                                Console.WriteLine($"{bookCounter + 1}. {booksList[bookCounter]}");
                             }
-                        }
 
-                        switch (userProcess)
-                        {
-                            case 1:
-                                Console.Clear();
-                                Console.WriteLine("AVAILABLE BOOKS");
+                            Console.WriteLine();
 
-                                for (int bookCounter = 0; bookCounter < booksList.Count; bookCounter++)
+                            for (int studentProcessListCounter = 0; studentProcessListCounter < studentProcessList.Count; studentProcessListCounter++)
+                            {
+                                Console.WriteLine($"{studentProcessListCounter + 1}. {studentProcessList[studentProcessListCounter]}");
+                            }
+
+                            while (true)
+                            {
+                                Console.Write("Please select the process that you want to do: ");
+                                if (int.TryParse(Console.ReadLine(), out userProcess) && userProcess <= studentProcessList.Count && userProcess > 0)
                                 {
-                                    Console.WriteLine($"{bookCounter + 1}. {booksList[bookCounter]}");
+                                    break;
                                 }
+                            }
 
-                                while (true)
-                                {
-                                    Console.Write("Select the book that you want to borrow: ");
-                                    if (int.TryParse(Console.ReadLine(), out bookInput) && (bookInput <= booksList.Count()) && bookInput > 0)
+                            switch (userProcess)
+                            {
+                                case 1:
+                                    Console.Clear();
+                                    Console.WriteLine("AVAILABLE BOOKS");
+
+                                    for (int bookCounter = 0; bookCounter < booksList.Count; bookCounter++)
                                     {
-                                        break;
+                                        Console.WriteLine($"{bookCounter + 1}. {booksList[bookCounter]}");
                                     }
-                                }
-
-                                pendingBorrowRequests.Add($"{userName} | {booksList[bookInput - 1]} ");
-                                studentPendingBooks[userName].Add(booksList[bookInput -1]);
-
-                                Console.WriteLine();
-
-                                Console.WriteLine($"Borrow request for for {booksList[bookInput - 1]} has been sent to the librarian");
-
-                            break;
-
-                            case 2:
-                                Console.Clear();
-                                Console.WriteLine("BORROWED BOOKS");
-
-                                foreach (string books in studentApprovedBooks[userName]) 
-                                {
-                                    Console.Write(books + " | status: Approved");
-                                    Console.WriteLine();
-                                }
-
-                                foreach (string books in studentPendingBooks[userName]) 
-                                {
-                                    Console.WriteLine($"{books} | status: Pending");
-                                    Console.WriteLine();
-                                }
-                                break;
-
-                            case 3:
-                                Console.Clear();
-                                Console.WriteLine("BORROWED BOOKS");
-                                foreach (string books in studentApprovedBooks[userName])
-                                {
-                                    Console.Write(books);
 
                                     while (true)
                                     {
-                                        Console.Write("Select a book that you want to return: ");
-                                        if (int.TryParse(Console.ReadLine(), out bookReturnIntput) && bookReturnIntput < studentApprovedBooks[userName].Count() && bookReturnIntput > 0)
+                                        Console.Write("Select the book that you want to borrow: ");
+                                        if (int.TryParse(Console.ReadLine(), out bookInput) && (bookInput <= booksList.Count()) && bookInput > 0)
                                         {
                                             break;
                                         }
                                     }
 
-                                    booksList.Add(studentApprovedBooks[userName][bookReturnIntput]);
-                                    studentApprovedBooks[userName].RemoveAt(bookReturnIntput - 1);
-                                }
-                                break;
-                        }
-                        break;
+                                    studentPendingBooks[userName].Enqueue(booksList[bookInput - 1]);
 
-                    case "librarian":
-                        break;
-                }
+                                    Console.WriteLine();
+
+                                    Console.WriteLine($"Borrow request for for {booksList[bookInput - 1]} has been sent to the librarian");
+
+                                    while (true)
+                                    {
+                                        Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                        holder = Console.ReadLine().ToLower();
+
+                                        if (holder == "no")
+                                        {
+                                            userProcessAgain = false;
+                                            break;
+                                        }
+
+                                        else if (holder == "yes")
+                                        {
+                                            break;
+                                        }
+
+                                    }
+
+                                    break;
+
+                                case 2:
+                                    Console.Clear();
+                                    Console.WriteLine("BORROWED BOOKS");
+
+                                    foreach (string books in studentApprovedBooks[userName])
+                                    {
+                                        Console.Write(books + " | status: Approved");
+                                    }
+
+                                    foreach (string books in studentPendingBooks[userName])
+                                    {
+                                        Console.WriteLine($"{books} | status: Pending");
+                                    }
+
+                                    foreach (string books in studentDeclinedBooks[userName])
+                                    {
+                                        Console.WriteLine($"{books} | status: Declined");   
+                                    }
+
+                                    Console.WriteLine();
+
+                                    while (true)
+                                    {
+                                        Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                        holder = Console.ReadLine().ToLower();
+
+                                        if (holder == "no")
+                                        {
+                                            userProcessAgain = false;
+                                            break;
+                                        }
+
+                                        else if (holder == "yes")
+                                        {
+                                            break;
+                                        }
+
+                                    }
+
+                                    break;
+
+                                case 3:
+                                    Console.Clear();
+                                    justBookCounter = 0;
+                                    Console.WriteLine("BORROWED BOOKS");
+                                    foreach (string books in studentApprovedBooks[userName])
+                                    {
+                                        justBookCounter++;
+                                        Console.WriteLine($"{justBookCounter}. {books}");
+                                    }
+
+                                    while (true)
+                                    {
+                                        Console.Write("Select a book that you want to return: ");
+                                        if (int.TryParse(Console.ReadLine(), out bookReturnIntput) && bookReturnIntput <= studentApprovedBooks[userName].Count() && bookReturnIntput > 0)
+                                        {
+                                            break;
+                                        }
+                                    }
+
+                                    booksList.Add(studentApprovedBooks[userName][bookReturnIntput - 1]);
+                                    studentApprovedBooks[userName].RemoveAt(bookReturnIntput - 1);
+
+                                    while (true)
+                                    {
+                                        Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                        holder = Console.ReadLine().ToLower();
+
+                                        if (holder == "no")
+                                        {
+                                            userProcessAgain = false;
+                                            break;
+                                        }
+
+                                        else if (holder == "yes")
+                                        {
+                                            break;
+                                        }
+                                      
+                                    }         
+                                    break;
+
+                                case 4:
+                                    userProcessAgain = false;
+                                    break;
+                            }
+                            break;
+
+                        case "librarian":
+
+                            for (int processCounter = 0; processCounter < librarianProcessList.Count; processCounter++)
+                            {
+                                Console.WriteLine($"{processCounter + 1}. {librarianProcessList[processCounter]}");
+                            }
+
+                            while (true)
+                            {
+                                Console.Write("Please select the process that you want to do: ");
+                                if (int.TryParse(Console.ReadLine(), out userProcess) && userProcess <= librarianProcessList.Count && userProcess > 0)
+                                {
+                                    break;
+                                }
+                            }
+
+                            switch (userProcess)
+                            {
+                                case 1:
+                                    Console.Clear();
+                                    Console.Write("Enter the title of the new book: ");
+                                    newBookTitleHolder = Console.ReadLine();
+                                    Console.Write("Please enter the author of the book: ");
+                                    newBookAuthorHolder = Console.ReadLine();
+                                    Console.WriteLine();
+                                    booksList.Add($"{newBookTitleHolder} by {newBookAuthorHolder}");
+                                    Console.WriteLine($"The book {newBookTitleHolder} by {newBookAuthorHolder} has been added to the library.");
+
+                                    Console.WriteLine();
+
+                                    Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                    holder = Console.ReadLine().ToLower();
+
+                                    if (holder == "no")
+                                    {
+                                        userProcessAgain = false;
+                                        break;
+                                    }
+
+                                    else if (holder == "yes")
+                                    {
+                                        break;
+                                    }
+
+                                    break;
+                                case 2:
+                                    Console.Clear();
+                                    Console.WriteLine("AVAILABLE BOOKS");
+                                    for (int bookCounter = 0; bookCounter < booksList.Count; bookCounter++)
+                                    {
+                                        Console.WriteLine($"{bookCounter + 1}. {booksList[bookCounter]}");
+                                    }
+                                    Console.WriteLine();
+
+
+                                        Console.WriteLine("BORROWED BOOKS");
+
+
+                                    foreach (string keyvalue in studentApprovedBooks.Keys)
+                                    {
+                                        foreach (string books in studentApprovedBooks[keyvalue])
+                                        {
+                                            Console.WriteLine($"{books} | Borrowed by {keyvalue}");
+                                        }
+                                    }
+
+                                    Console.WriteLine(); 
+                                    
+                                    Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                    holder = Console.ReadLine().ToLower();
+
+                                    if (holder == "no")
+                                    {
+                                        userProcessAgain = false;
+                                        break;
+                                    }
+
+                                    else if (holder == "yes")
+                                    {
+                                        break;
+                                    }
+
+                                    break;
+
+                                case 3:
+                                    Console.Clear();
+                                    
+
+                                        Console.WriteLine("PENDING BORROW REQUESTS");
+
+
+                                    foreach (string keyvalue in studentPendingBooks.Keys)
+                                    {
+                                        foreach (string books in studentPendingBooks[keyvalue])
+                                        {
+                                            Console.WriteLine($"{books} | Requested by {keyvalue}");
+                                        }
+                                    }
+
+                                    Console.WriteLine();
+
+                                    Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                    holder = Console.ReadLine().ToLower();
+
+                                    if (holder == "no")
+                                    {
+                                        userProcessAgain = false;
+                                        break;
+                                    }
+
+                                    else if (holder == "yes")
+                                    {
+                                        break;
+                                    }
+
+                                    break;
+
+                                case 4:
+                                    Console.Clear();
+                                    pendingBooksCounter = 0;
+                                    holder = "";
+
+                                        Console.WriteLine("APPROVE/DECLINE BORROW REQUESTS");
+
+
+                                    foreach (string keyvalue in studentPendingBooks.Keys)
+                                    {
+                                        foreach (string books in studentPendingBooks[keyvalue])
+                                        {
+                                            pendingBooksCounter++;
+                                            Console.WriteLine($"{pendingBooksCounter}. {books} | Requested by {keyvalue}");
+                                        }
+                                    }
+
+                                    Console.WriteLine();
+
+                                    if (pendingBooksCounter > 0)
+                                    {
+                                        while (true)
+                                        {
+                                            Console.Write("Select the book that you want to approve/decline: ");
+                                            if (int.TryParse(Console.ReadLine(), out bookInput) && bookInput <= pendingBooksCounter && bookInput > 0)
+                                            {
+                                                break;
+                                            }
+                                        }
+
+                                        while (true)
+                                        {
+                                            Console.Write("Do you want to approve or decline the request? (approve/decline): ");
+                                            holder = Console.ReadLine().ToLower();
+
+                                            if (holder == "approve" || holder == "decline")
+                                            {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                   
+                                    Console.WriteLine();
+                                    pendingBooksCounter = 0;
+
+                                    foreach (string keyvalue in studentPendingBooks.Keys)
+                                    {
+                                        foreach (string books in studentPendingBooks[keyvalue])
+                                        {
+                                            pendingBooksCounter++;
+                                            if (pendingBooksCounter == bookInput)
+                                            {
+                                                if (holder == "approve")
+                                                {
+                                                    studentApprovedBooks[keyvalue].Add(books);
+                                                    studentPendingBooks[keyvalue].Dequeue();
+                                                    booksList.Remove(books);
+                                                    Console.WriteLine($"The request for {books} has been approved.");
+                                                    break;
+                                                }
+                                                else if (holder == "decline")
+                                                {
+                                                    studentDeclinedBooks[keyvalue].Add(books);
+                                                    studentPendingBooks[keyvalue].Dequeue();
+                                                    Console.WriteLine($"The request for {books} has been declined.");
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                    holder = Console.ReadLine().ToLower();
+
+                                    if (holder == "no")
+                                    {
+                                        userProcessAgain = false;
+                                        break;
+                                    }
+
+                                    else if (holder == "yes")
+                                    {
+                                        break;
+                                    }
+
+                                    break;
+
+                                case 5:
+                                    userProcessAgain = false;
+                                    break;
+                            }
+
+                            break;
+                    }
+                }   
             }
             
         }

@@ -23,6 +23,7 @@ namespace _20250507_Library_Management_System
             int bookReturnIntput;
             int pendingBooksCounter;
             int pendingBooksDisplayCounter;
+            int borrowedBooksDisplayCounter;
             int justBookCounter;
             int studentBorrowedBooksCounter;
             bool nameIsValid = false;
@@ -283,20 +284,25 @@ namespace _20250507_Library_Management_System
                                         Console.WriteLine($"{justBookCounter}. {books}");
                                     }
 
-                                    Console.WriteLine();
-
-                                    while (true)
+                                    if (justBookCounter > 0)
                                     {
-                                        Console.Write("Select a book that you want to return: ");
-                                        if (int.TryParse(Console.ReadLine(), out bookReturnIntput) && bookReturnIntput <= studentApprovedBooks[userName].Count() && bookReturnIntput > 0)
+                                        while (true)
                                         {
-                                            break;
+                                            Console.WriteLine();
+                                            Console.Write("Select a book that you want to return: ");
+                                            if (int.TryParse(Console.ReadLine(), out bookReturnIntput) && bookReturnIntput <= studentApprovedBooks[userName].Count() && bookReturnIntput > 0)
+                                            {
+                                                break;
+                                            }
                                         }
-                                    }
 
-                                    booksList.Add(studentApprovedBooks[userName][bookReturnIntput - 1]);
-                                    studentApprovedBooks[userName].RemoveAt(bookReturnIntput - 1);
+                                        booksList.Add(studentApprovedBooks[userName][bookReturnIntput - 1]);
+                                        studentApprovedBooks[userName].RemoveAt(bookReturnIntput - 1);
 
+                                        Console.WriteLine();
+                                        Console.WriteLine("The book has been returned.");
+                                    }                              
+                                    
                                     Console.WriteLine();
 
                                     while (true)
@@ -381,14 +387,15 @@ namespace _20250507_Library_Management_System
                                     Console.WriteLine();
 
 
-                                        Console.WriteLine("BORROWED BOOKS");
+                                    Console.WriteLine("BORROWED BOOKS");
 
-
+                                    borrowedBooksDisplayCounter = 0;
                                     foreach (string keyvalue in studentApprovedBooks.Keys)
                                     {
                                         foreach (string books in studentApprovedBooks[keyvalue])
                                         {
-                                            Console.WriteLine($"{books} | Borrowed by {keyvalue}");
+                                            borrowedBooksDisplayCounter++;
+                                            Console.WriteLine($"{borrowedBooksDisplayCounter}. {books} | Borrowed by {keyvalue}");
                                         }
                                     }
 
@@ -500,12 +507,23 @@ namespace _20250507_Library_Management_System
                                             {
                                                 if (holder == "approve")
                                                 {
-                                                    studentApprovedBooks[keyvalue].Add(books);
-                                                    studentPendingBooks[keyvalue].Dequeue();
-                                                    booksList.Remove(books);
-                                                    Console.WriteLine($"The request for {books} has been approved.");
-                                                    break;
+
+                                                    if (booksList.Contains(books))
+                                                    {
+                                                        studentApprovedBooks[keyvalue].Add(books);
+                                                        studentPendingBooks[keyvalue].Dequeue();
+                                                        booksList.Remove(books);
+                                                        Console.WriteLine($"The request for {books} has been approved.");
+                                                        break;
+                                                    }
+
+                                                    else
+                                                    {
+                                                        Console.WriteLine($"{books} is still borrowed by someone. Please try again later.");
+                                                    }
+                                                    
                                                 }
+
                                                 else if (holder == "decline")
                                                 {
                                                     studentDeclinedBooks[keyvalue].Add(books);

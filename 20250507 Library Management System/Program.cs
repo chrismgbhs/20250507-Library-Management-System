@@ -20,7 +20,9 @@ namespace _20250507_Library_Management_System
             int bookInput = 0;
             int bookReturnIntput;
             int pendingBooksCounter;
+            int pendingBooksDisplayCounter;
             int justBookCounter;
+            int studentBorrowedBooksCounter;
             bool nameIsValid = false;
             bool roleIsValid;
             bool userProcessAgain;
@@ -94,15 +96,13 @@ namespace _20250507_Library_Management_System
                     Console.Write("Please enter your name: ");
                     userName = Console.ReadLine();
 
-                    if (studentsList.Contains(userName) || librariansList.Contains(userName))
+                    if (studentsList.Contains(userName, StringComparer.OrdinalIgnoreCase) || librariansList.Contains(userName, StringComparer.OrdinalIgnoreCase) || studentsList.Contains(userName, StringComparer.OrdinalIgnoreCase))
                     {
                         nameIsValid = true;
                     }
                 }
 
                 roleIsValid = false;
-
-                // PROGRAM WILL NOT CONTINUE IF THE USER IS NOT IN THE LIST OF THE SELECTED ROLE (NOT CHECKED IF FUNCTIONAL)
 
                 while (!roleIsValid)
                 {
@@ -111,17 +111,17 @@ namespace _20250507_Library_Management_System
 
                     if (roleInput == "student")
                     {
-                        if (studentsList.Contains(userName))
+                        if (studentsList.Contains(userName, StringComparer.OrdinalIgnoreCase))
                         {
-                            nameIsValid = true;
+                            roleIsValid = true;
                         }
                     }
 
                     else if (roleInput == "librarian")
                     {
-                        if (librariansList.Contains(userName))
+                        if (librariansList.Contains(userName, StringComparer.OrdinalIgnoreCase))
                         {
-                            nameIsValid = true; 
+                            roleIsValid = true; 
                         }
                     }
                 }
@@ -152,6 +152,8 @@ namespace _20250507_Library_Management_System
                                 Console.WriteLine($"{studentProcessListCounter + 1}. {studentProcessList[studentProcessListCounter]}");
                             }
 
+                            Console.WriteLine();
+
                             while (true)
                             {
                                 Console.Write("Please select the process that you want to do: ");
@@ -172,6 +174,8 @@ namespace _20250507_Library_Management_System
                                         Console.WriteLine($"{bookCounter + 1}. {booksList[bookCounter]}");
                                     }
 
+                                    Console.WriteLine();
+
                                     while (true)
                                     {
                                         Console.Write("Select the book that you want to borrow: ");
@@ -181,11 +185,24 @@ namespace _20250507_Library_Management_System
                                         }
                                     }
 
-                                    studentPendingBooks[userName].Enqueue(booksList[bookInput - 1]);
+                                    if (studentPendingBooks[userName].Contains(booksList[bookInput - 1]))
+                                    {
+                                        Console.WriteLine($"You have already requested for {booksList[bookInput - 1]}.");
+                                    }
+
+                                    else if (studentApprovedBooks[userName].Contains(booksList[bookInput - 1]))
+                                    {
+                                        Console.WriteLine($"You have already borrowed {booksList[bookInput - 1]}.");
+                                    }
+
+                                    else
+                                    {
+                                        studentPendingBooks[userName].Enqueue(booksList[bookInput - 1]);
+                                        Console.WriteLine();
+                                        Console.WriteLine($"Borrow request for for {booksList[bookInput - 1]} has been sent to the librarian.");
+                                    }
 
                                     Console.WriteLine();
-
-                                    Console.WriteLine($"Borrow request for for {booksList[bookInput - 1]} has been sent to the librarian");
 
                                     while (true)
                                     {
@@ -210,20 +227,24 @@ namespace _20250507_Library_Management_System
                                 case 2:
                                     Console.Clear();
                                     Console.WriteLine("BORROWED BOOKS");
+                                    studentBorrowedBooksCounter = 0;
 
                                     foreach (string books in studentApprovedBooks[userName])
                                     {
-                                        Console.Write(books + " | status: Approved");
+                                        studentBorrowedBooksCounter++;
+                                        Console.WriteLine($"{studentBorrowedBooksCounter}. {books} | status: Approved");
                                     }
 
                                     foreach (string books in studentPendingBooks[userName])
                                     {
-                                        Console.WriteLine($"{books} | status: Pending");
+                                        studentBorrowedBooksCounter++;
+                                        Console.WriteLine($"{studentBorrowedBooksCounter}. {books} | status: Pending");
                                     }
 
                                     foreach (string books in studentDeclinedBooks[userName])
-                                    {
-                                        Console.WriteLine($"{books} | status: Declined");   
+                                    {   
+                                        studentBorrowedBooksCounter++;
+                                        Console.WriteLine($"{studentBorrowedBooksCounter}. {books} | status: Declined");
                                     }
 
                                     Console.WriteLine();
@@ -258,6 +279,8 @@ namespace _20250507_Library_Management_System
                                         Console.WriteLine($"{justBookCounter}. {books}");
                                     }
 
+                                    Console.WriteLine();
+
                                     while (true)
                                     {
                                         Console.Write("Select a book that you want to return: ");
@@ -269,6 +292,8 @@ namespace _20250507_Library_Management_System
 
                                     booksList.Add(studentApprovedBooks[userName][bookReturnIntput - 1]);
                                     studentApprovedBooks[userName].RemoveAt(bookReturnIntput - 1);
+
+                                    Console.WriteLine();
 
                                     while (true)
                                     {
@@ -301,6 +326,8 @@ namespace _20250507_Library_Management_System
                             {
                                 Console.WriteLine($"{processCounter + 1}. {librarianProcessList[processCounter]}");
                             }
+
+                            Console.WriteLine();
 
                             while (true)
                             {
@@ -385,12 +412,14 @@ namespace _20250507_Library_Management_System
 
                                         Console.WriteLine("PENDING BORROW REQUESTS");
 
+                                    pendingBooksDisplayCounter = 0;
 
                                     foreach (string keyvalue in studentPendingBooks.Keys)
                                     {
                                         foreach (string books in studentPendingBooks[keyvalue])
                                         {
-                                            Console.WriteLine($"{books} | Requested by {keyvalue}");
+                                            pendingBooksDisplayCounter++;
+                                            Console.WriteLine($"{pendingBooksDisplayCounter}. {books} | Requested by {keyvalue}");
                                         }
                                     }
 
@@ -415,6 +444,7 @@ namespace _20250507_Library_Management_System
                                 case 4:
                                     Console.Clear();
                                     pendingBooksCounter = 0;
+                                    
                                     holder = "";
 
                                         Console.WriteLine("APPROVE/DECLINE BORROW REQUESTS");
@@ -482,6 +512,8 @@ namespace _20250507_Library_Management_System
                                             }
                                         }
                                     }
+
+                                    Console.WriteLine();
 
                                     Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
                                     holder = Console.ReadLine().ToLower();

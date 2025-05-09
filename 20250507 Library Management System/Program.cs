@@ -83,8 +83,7 @@ namespace _20250507_Library_Management_System
 
             foreach (string username in studentsList)
             {
-                studentApprovedBooks[$"{username}"] = new List<string>();
-                studentPendingBooks[$"{username}"] = new Queue<string>();
+                studentApprovedBooks[$"{username}"] = new List<string>(); 
                 studentDeclinedBooks[$"{username}"] = new List<string>();
             }
 
@@ -189,7 +188,12 @@ namespace _20250507_Library_Management_System
                                             break;
                                         }
                                     }
-
+                                    
+                                    if (!studentPendingBooks.ContainsKey(userName))
+                                    {
+                                        studentPendingBooks[$"{userName}"] = new Queue<string>();
+                                    }
+                                    
                                     if (studentPendingBooks[userName].Contains(booksList[bookInput - 1]))
                                     {
                                         Console.WriteLine($"You have already requested for {booksList[bookInput - 1]}.");
@@ -519,7 +523,7 @@ namespace _20250507_Library_Management_System
 
                                                     else
                                                     {
-                                                        Console.WriteLine($"{books} is still borrowed by someone. Please try again later.");
+                                                        Console.WriteLine($"{books} is still being borrowed by someone. Please try again later.");
                                                     }
                                                     
                                                 }

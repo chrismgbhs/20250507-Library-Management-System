@@ -15,7 +15,9 @@ namespace _20250507_Library_Management_System
             string roleInput = "";
             string holder = "";
             string newBookTitleHolder = "";
-            string newBookAuthorHolder = "";    
+            string newBookAuthorHolder = "";
+            string userNameHolder;
+            char userNameFirstLetter = ' ';
             int userProcess;
             int bookInput = 0;
             int bookReturnIntput;
@@ -94,10 +96,12 @@ namespace _20250507_Library_Management_System
                 while (!nameIsValid)
                 {
                     Console.Write("Please enter your name: ");
-                    userName = Console.ReadLine();
+                    userNameHolder = Console.ReadLine();
 
-                    if (studentsList.Contains(userName, StringComparer.OrdinalIgnoreCase) || librariansList.Contains(userName, StringComparer.OrdinalIgnoreCase) || studentsList.Contains(userName, StringComparer.OrdinalIgnoreCase))
+                    if (studentsList.Contains(userNameHolder, StringComparer.OrdinalIgnoreCase) || librariansList.Contains(userNameHolder, StringComparer.OrdinalIgnoreCase))
                     {
+                        userNameFirstLetter = userNameHolder[0];
+                        userName = userNameFirstLetter.ToString().ToUpper() + userNameHolder.Substring(1).ToLower();
                         nameIsValid = true;
                     }
                 }

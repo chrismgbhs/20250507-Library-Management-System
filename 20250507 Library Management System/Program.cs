@@ -94,7 +94,7 @@ namespace _20250507_Library_Management_System
                     Console.Write("Please enter your name: ");
                     userName = Console.ReadLine();
 
-                    if (studentProcessList.Contains(userName) || librariansList.Contains(userName))
+                    if (studentsList.Contains(userName) || librariansList.Contains(userName))
                     {
                         nameIsValid = true;
                     }
@@ -102,14 +102,27 @@ namespace _20250507_Library_Management_System
 
                 roleIsValid = false;
 
+                // PROGRAM WILL NOT CONTINUE IF THE USER IS NOT IN THE LIST OF THE SELECTED ROLE (NOT CHECKED IF FUNCTIONAL)
+
                 while (!roleIsValid)
                 {
                     Console.Write("Please select your role (student/librarian): ");
                     roleInput = Console.ReadLine().ToLower();
 
-                    if (roleInput == "student" || roleInput == "librarian")
+                    if (roleInput == "student")
                     {
-                        roleIsValid = true;
+                        if (studentsList.Contains(userName))
+                        {
+                            nameIsValid = true;
+                        }
+                    }
+
+                    else if (roleInput == "librarian")
+                    {
+                        if (librariansList.Contains(userName))
+                        {
+                            nameIsValid = true; 
+                        }
                     }
                 }
 

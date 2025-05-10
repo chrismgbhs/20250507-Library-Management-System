@@ -85,6 +85,7 @@ namespace _20250507_Library_Management_System
             {
                 studentApprovedBooks[$"{username}"] = new List<string>(); 
                 studentDeclinedBooks[$"{username}"] = new List<string>();
+studentPendingBooks[$"{userName}"] = new Queue<string>();
             }
 
             while (true)
@@ -189,10 +190,7 @@ namespace _20250507_Library_Management_System
                                         }
                                     }
                                     
-                                    if (!studentPendingBooks.ContainsKey(userName))
-                                    {
-                                        studentPendingBooks[$"{userName}"] = new Queue<string>();
-                                    }
+
                                     
                                     if (studentPendingBooks[userName].Contains(booksList[bookInput - 1]))
                                     {

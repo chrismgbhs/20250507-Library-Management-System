@@ -85,7 +85,7 @@ namespace _20250507_Library_Management_System
             {
                 studentApprovedBooks[$"{username}"] = new List<string>(); 
                 studentDeclinedBooks[$"{username}"] = new List<string>();
-studentPendingBooks[$"{userName}"] = new Queue<string>();
+                studentPendingBooks[$"{username}"] = new Queue<string>();
             }
 
             while (true)
@@ -190,8 +190,6 @@ studentPendingBooks[$"{userName}"] = new Queue<string>();
                                         }
                                     }
                                     
-
-                                    
                                     if (studentPendingBooks[userName].Contains(booksList[bookInput - 1]))
                                     {
                                         Console.WriteLine($"You have already requested for {booksList[bookInput - 1]}.");
@@ -241,6 +239,7 @@ studentPendingBooks[$"{userName}"] = new Queue<string>();
                                         studentBorrowedBooksCounter++;
                                         Console.WriteLine($"{studentBorrowedBooksCounter}. {books} | status: Approved");
                                     }
+
 
                                     foreach (string books in studentPendingBooks[userName])
                                     {

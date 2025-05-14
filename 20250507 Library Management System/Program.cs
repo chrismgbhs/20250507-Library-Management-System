@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -11,12 +12,17 @@ namespace _20250507_Library_Management_System
     {
         static void Main(string[] args)
         {
+
             string userName = "";
             string roleInput = "";
             string holder = "";
             string newBookTitleHolder = "";
             string newBookAuthorHolder = "";
             string userNameHolder;
+            string newUser;
+            string newUserRole;
+            string deletableUser;
+            string deletableUserRole;
             char userNameFirstLetter = ' ';
             int userProcess;
             int bookInput = 0;
@@ -26,6 +32,7 @@ namespace _20250507_Library_Management_System
             int borrowedBooksDisplayCounter;
             int justBookCounter;
             int studentBorrowedBooksCounter;
+            int adminProcessInput;
             bool nameIsValid = false;
             bool roleIsValid;
             bool userProcessAgain;
@@ -37,6 +44,11 @@ namespace _20250507_Library_Management_System
                 "Eudrick",
                 "Ivan",
                 "Iram"
+            };
+
+            List<string> adminList = new List<string>
+            {
+                "Aris"
             };
 
             List<string> librariansList = new List<string> {
@@ -74,6 +86,8 @@ namespace _20250507_Library_Management_System
                 "The little prince by de Saint-Exupery Antoine, Katherine Woods"
             };
 
+            List<string> logs = new List<string>();
+
 
 
 
@@ -88,6 +102,7 @@ namespace _20250507_Library_Management_System
                 studentPendingBooks[$"{username}"] = new Queue<string>();
             }
 
+            logs.Add($"[{System.DateTime.Now}] - System started.");
             while (true)
             {
                 nameIsValid = false;
@@ -99,11 +114,17 @@ namespace _20250507_Library_Management_System
                     Console.Write("Please enter your name: ");
                     userNameHolder = Console.ReadLine();
 
-                    if (studentsList.Contains(userNameHolder, StringComparer.OrdinalIgnoreCase) || librariansList.Contains(userNameHolder, StringComparer.OrdinalIgnoreCase))
+                    if (studentsList.Contains(userNameHolder, StringComparer.OrdinalIgnoreCase) || librariansList.Contains(userNameHolder, StringComparer.OrdinalIgnoreCase) || adminList.Contains(userNameHolder, StringComparer.OrdinalIgnoreCase))
                     {
                         userNameFirstLetter = userNameHolder[0];
                         userName = userNameFirstLetter.ToString().ToUpper() + userNameHolder.Substring(1).ToLower();
                         nameIsValid = true;
+                    }
+
+                    else
+                    {
+                        Console.WriteLine("The name is not on the list of users.");
+                        logs.Add($"[{System.DateTime.Now}] - {userNameHolder} is not in the list of users.");
                     }
                 }
 
@@ -111,31 +132,38 @@ namespace _20250507_Library_Management_System
 
                 while (!roleIsValid)
                 {
-                    Console.Write("Please select your role (student/librarian): ");
+                    Console.Write("Please select your role (student/librarian/admin): ");
                     roleInput = Console.ReadLine().ToLower();
 
-                    if (roleInput == "student")
+                    if (roleInput == "student" && studentsList.Contains(userName, StringComparer.OrdinalIgnoreCase))
                     {
-                        if (studentsList.Contains(userName, StringComparer.OrdinalIgnoreCase))
-                        {
                             roleIsValid = true;
-                        }
                     }
 
-                    else if (roleInput == "librarian")
+                    else if (roleInput == "librarian" && librariansList.Contains(userName, StringComparer.OrdinalIgnoreCase))
                     {
-                        if (librariansList.Contains(userName, StringComparer.OrdinalIgnoreCase))
-                        {
                             roleIsValid = true; 
-                        }
+                    }
+
+                    else if(roleInput == "admin" && adminList.Contains(userName, StringComparer.OrdinalIgnoreCase))
+                    {
+                            roleIsValid = true;
+                    }
+
+                    else 
+                    {
+                        Console.WriteLine("The role is invalid.");
+                        logs.Add($"[{System.DateTime.Now}] - {roleInput} is an invalid role.");
                     }
                 }
 
                 Console.WriteLine();
                 userProcessAgain = true;
+                logs.Add($"[{System.DateTime.Now}] - {userName} logged in.");
 
                 while (userProcessAgain )
                 {
+                    
                     holder = "";
                     userProcess = 0;
 
@@ -204,19 +232,28 @@ namespace _20250507_Library_Management_System
                                     {
                                         studentPendingBooks[userName].Enqueue(booksList[bookInput - 1]);
                                         Console.WriteLine();
-                                        Console.WriteLine($"Borrow request for for {booksList[bookInput - 1]} has been sent to the librarian.");
+                                        Console.WriteLine($"Borrow request for {booksList[bookInput - 1]} has been sent to the librarian.");
+                                        Console.WriteLine();
+                                        Console.WriteLine("UPDATED AVAILABLE BOOKS (NOTE THAT THE BOOK WITH A BORROW REQUEST WILL ONLY DISAPPEAR FROM THE LIST IF THE REQUEST HAS BEEN APPROVED.)");
+                                        for (int bookCounter = 0; bookCounter < booksList.Count; bookCounter++)
+                                        {
+                                            Console.WriteLine($"{bookCounter + 1}. {booksList[bookCounter]}");
+                                        }
+
+                                        logs.Add($"Borrow request by {userName} for {booksList[bookInput - 1]} has been sent to the librarian. | {System.DateTime.Now}");
                                     }
 
                                     Console.WriteLine();
 
                                     while (true)
                                     {
-                                        Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                        Console.Write("Do you want to go back to the main menu? (yes/no) You will logout if you enter no: ");
                                         holder = Console.ReadLine().ToLower();
 
                                         if (holder == "no")
                                         {
                                             userProcessAgain = false;
+                                            logs.Add($"[{System.DateTime.Now}] - {userName} logged out.");
                                             break;
                                         }
 
@@ -257,12 +294,13 @@ namespace _20250507_Library_Management_System
 
                                     while (true)
                                     {
-                                        Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                        Console.Write("Do you want to go back to the main menu? (yes/no) You will logout if you enter no: ");
                                         holder = Console.ReadLine().ToLower();
 
                                         if (holder == "no")
                                         {
                                             userProcessAgain = false;
+                                            logs.Add($"[{System.DateTime.Now}] - {userName} logged out.");
                                             break;
                                         }
 
@@ -302,18 +340,28 @@ namespace _20250507_Library_Management_System
 
                                         Console.WriteLine();
                                         Console.WriteLine("The book has been returned.");
-                                    }                              
+                                        logs.Add($"{userName} successfully returned the book {studentApprovedBooks[userName][bookReturnIntput - 1]}. | {System.DateTime.Now}");
+
+                                        Console.WriteLine();
+
+                                        Console.WriteLine("UPDATED LIST OF AVAILABLE BOOKS");
+                                        foreach (string book in booksList)
+                                        {
+                                            Console.WriteLine(book);
+                                        }
+                                    }
                                     
                                     Console.WriteLine();
 
                                     while (true)
                                     {
-                                        Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                        Console.Write("Do you want to go back to the main menu? (yes/no) You will logout if you enter no: ");
                                         holder = Console.ReadLine().ToLower();
 
                                         if (holder == "no")
                                         {
                                             userProcessAgain = false;
+                                            logs.Add($"[{System.DateTime.Now}] - {userName} logged out.");
                                             break;
                                         }
 
@@ -327,6 +375,7 @@ namespace _20250507_Library_Management_System
 
                                 case 4:
                                     userProcessAgain = false;
+                                    logs.Add($"[{System.DateTime.Now}] - {userName} logged out.");
                                     break;
                             }
                             break;
@@ -358,17 +407,19 @@ namespace _20250507_Library_Management_System
                                     Console.Write("Please enter the author of the book: ");
                                     newBookAuthorHolder = Console.ReadLine();
                                     Console.WriteLine();
+                                    logs.Add($"[{System.DateTime.Now}] - {userName} added {newBookTitleHolder} to the list of books.");
                                     booksList.Add($"{newBookTitleHolder} by {newBookAuthorHolder}");
                                     Console.WriteLine($"The book {newBookTitleHolder} by {newBookAuthorHolder} has been added to the library.");
 
                                     Console.WriteLine();
 
-                                    Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                    Console.Write("Do you want to go back to the main menu? (yes/no) You will logout if you enter no: ");
                                     holder = Console.ReadLine().ToLower();
 
                                     if (holder == "no")
                                     {
                                         userProcessAgain = false;
+                                        logs.Add($"[{System.DateTime.Now}] - {userName} logged out.");
                                         break;
                                     }
 
@@ -402,12 +453,13 @@ namespace _20250507_Library_Management_System
 
                                     Console.WriteLine(); 
                                     
-                                    Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                    Console.Write("Do you want to go back to the main menu? (yes/no) You will logout if you enter no: ");
                                     holder = Console.ReadLine().ToLower();
 
                                     if (holder == "no")
                                     {
                                         userProcessAgain = false;
+                                        logs.Add($"[{System.DateTime.Now}] - {userName} logged out.");
                                         break;
                                     }
 
@@ -437,12 +489,13 @@ namespace _20250507_Library_Management_System
 
                                     Console.WriteLine();
 
-                                    Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                    Console.Write("Do you want to go back to the main menu? (yes/no) You will logout if you enter no: ");
                                     holder = Console.ReadLine().ToLower();
 
                                     if (holder == "no")
                                     {
                                         userProcessAgain = false;
+                                        logs.Add($"[{System.DateTime.Now}] - {userName} logged out.");
                                         break;
                                     }
 
@@ -511,6 +564,7 @@ namespace _20250507_Library_Management_System
 
                                                     if (booksList.Contains(books))
                                                     {
+                                                        logs.Add($"[{System.DateTime.Now}] - {userName} approved {books} to be borrowed.");
                                                         studentApprovedBooks[keyvalue].Add(books);
                                                         studentPendingBooks[keyvalue].Dequeue();
                                                         booksList.Remove(books);
@@ -527,6 +581,7 @@ namespace _20250507_Library_Management_System
 
                                                 else if (holder == "decline")
                                                 {
+                                                    logs.Add($"[{System.DateTime.Now}] - {userName} declined {books} to be borrowed.");
                                                     studentDeclinedBooks[keyvalue].Add(books);
                                                     studentPendingBooks[keyvalue].Dequeue();
                                                     Console.WriteLine($"The request for {books} has been declined.");
@@ -538,12 +593,13 @@ namespace _20250507_Library_Management_System
 
                                     Console.WriteLine();
 
-                                    Console.WriteLine("Do you want to go back to the main menu? (yes/no) You will logout if you enter no.");
+                                    Console.Write("Do you want to go back to the main menu? (yes/no) You will logout if you enter no: ");
                                     holder = Console.ReadLine().ToLower();
 
                                     if (holder == "no")
                                     {
                                         userProcessAgain = false;
+                                        logs.Add($"[{System.DateTime.Now}] - {userName} logged out.");
                                         break;
                                     }
 
@@ -556,7 +612,200 @@ namespace _20250507_Library_Management_System
 
                                 case 5:
                                     userProcessAgain = false;
+                                    logs.Add($"[{System.DateTime.Now}] - {userName} logged out.");
                                     break;
+                            }
+
+                            break;
+
+                        case "admin":
+                            Console.WriteLine("1. Add user\n2. Delete user\n3. View system logs\n4. Log out");
+
+                            while (true) 
+                            {
+                                Console.Write("Please select the process that you want to do: ");
+                                if (int.TryParse(Console.ReadLine(), out adminProcessInput) && adminProcessInput <= 5 && adminProcessInput > 0)
+                                {
+                                    break;
+                                }
+                            }
+
+                            switch (adminProcessInput)
+                            {
+                                case 1:
+                                    Console.Clear();
+                                    newUser = "";
+                                    newUserRole = "";
+
+                                    Console.Write("Please enter the name of the user that you want to add: ");
+                                    newUser = Console.ReadLine();
+                                    newUser = newUser[0].ToString().ToUpper() + newUser.Substring(1).ToLower();
+
+                                    Console.WriteLine();
+
+                                    while (true)
+                                    {
+                                        Console.Write("Please type the role of the new user (student/librarian): ");
+                                        newUserRole = Console.ReadLine().ToLower();
+
+                                        if (newUserRole == "librarian" || newUserRole == "student")
+                                        {
+                                            break;
+                                        }
+                                    }
+
+                                    Console.WriteLine();
+
+                                    if (newUserRole == "librarian")
+                                    {
+                                        librariansList.Add(newUser);
+                                    }
+
+                                    else
+                                    {
+                                        studentsList.Add(newUser);
+                                    }
+
+                                    Console.WriteLine();
+
+                                    Console.WriteLine("The user has been added.");
+                                    logs.Add($"{newUser} has been successfully added to the list of users as a {newUserRole}. | {System.DateTime.Now}");
+
+                                    Console.WriteLine();
+
+                                    while (true)
+                                    {
+                                        Console.Write("Do you want to go back to the main menu? (yes/no) You will logout if you enter no: ");
+                                        holder = Console.ReadLine().ToLower();
+
+                                        if (holder == "no")
+                                        {
+                                            userProcessAgain = false;
+                                            logs.Add($"[{System.DateTime.Now}] - {userName} logged out.");
+                                            break;
+                                        }
+
+                                        else if (holder == "yes")
+                                        {
+                                            break;
+                                        }
+
+                                    }
+
+                                    break;
+
+                                case 2:
+                                    Console.Clear();
+                                    deletableUser = "";
+                                    deletableUserRole = "";
+
+                                    Console.Write("Please enter the name of the user that you want to delete: ");
+                                    deletableUser = Console.ReadLine();
+                                    deletableUser = deletableUser[0].ToString().ToUpper() + deletableUser.Substring(1).ToLower();
+
+                                    Console.WriteLine();
+
+                                    while (true)
+                                    {
+                                        Console.Write("Please type the role of the user (student/librarian): ");
+                                        deletableUserRole = Console.ReadLine().ToLower();
+
+                                        if (deletableUserRole == "librarian" || deletableUserRole == "student")
+                                        {
+                                            break;
+                                        }
+                                    }
+
+                                    Console.WriteLine();
+
+                                    if (deletableUserRole == "librarian")
+                                    {
+                                        if (librariansList.Contains(deletableUser))
+                                        {
+                                            librariansList.Remove(deletableUser);
+                                            Console.WriteLine("User successfully removed.");
+                                            logs.Add($"{deletableUser} was removed by {userName}. | {System.DateTime.Now}");
+                                        }
+
+                                        else
+                                        {
+                                            Console.WriteLine("User not found.");
+                                        }
+                                    }
+
+                                    else
+                                    {
+                                        if (studentsList.Contains(deletableUser))
+                                        {
+                                            studentsList.Remove(deletableUser);
+                                            Console.WriteLine("User successfully removed.");
+                                            logs.Add($"{deletableUser} was removed by {userName}. | {System.DateTime.Now}");
+                                        }
+
+                                        else
+                                        {
+                                            Console.WriteLine("User not found.");
+                                        }
+                                    }
+
+                                    Console.WriteLine();
+
+                                    while (true)
+                                    {
+                                        Console.Write("Do you want to go back to the main menu? (yes/no) You will logout if you enter no: ");
+                                        holder = Console.ReadLine().ToLower();
+
+                                        if (holder == "no")
+                                        {
+                                            userProcessAgain = false;
+                                            logs.Add($"[{System.DateTime.Now}] - {userName} logged out.");
+                                            break;
+                                        }
+
+                                        else if (holder == "yes")
+                                        {
+                                            break;
+                                        }
+
+                                    }
+
+                                    break;
+
+                                case 3:
+                                    Console.Clear();
+                                    Console.WriteLine("SYSTEM LOGS");
+                                    foreach (string log in logs) 
+                                    { 
+                                        Console.WriteLine(log);
+                                    }
+
+                                    Console.WriteLine();
+
+                                    while (true)
+                                    {
+                                        Console.Write("Do you want to go back to the main menu? (yes/no) You will logout if you enter no: ");
+                                        holder = Console.ReadLine().ToLower();
+
+                                        if (holder == "no")
+                                        {
+                                            userProcessAgain = false;
+                                            logs.Add($"[{System.DateTime.Now}] - {userName} logged out.");
+                                            break;
+                                        }
+
+                                        else if (holder == "yes")
+                                        {
+                                            break;
+                                        }
+
+                                    }
+
+                                    break;
+
+                                case 4:
+                                    userProcessAgain = false;
+                                    break;
+
                             }
 
                             break;
